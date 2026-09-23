@@ -1,0 +1,6 @@
+{
+  "name": "Solviplas - Bioplásticos Biodegradables y Solubles",
+  "description": "Plataforma oficial del Proyecto Social Solviplas de la Escuela de Líderes UCV para la I.E. N° 159 Glorioso 10 de Octubre. Promoviendo bioplásticos solubles y educación ambiental.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
