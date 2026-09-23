@@ -193,24 +193,7 @@ export const AuthModal: React.FC = () => {
                 )}
               </button>
 
-              <div className="pt-2 border-t border-slate-100 space-y-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginIdentifier('marceloaliaga102@gmail.com');
-                    setLoginPassword('Solviplas2025!');
-                  }}
-                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                >
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>Autocompletar Acceso Administrador (Marcelo Aliaga)</span>
-                </button>
-                <p className="text-[11px] text-center text-slate-400">
-                  Credenciales de Admin: <span className="text-slate-600 font-mono">marceloaliaga102@gmail.com</span> / <span className="text-slate-600 font-mono">Solviplas2025!</span>
-                </p>
-              </div>
-
-              <div className="text-center pt-1">
+              <div className="text-center pt-2">
                 <button
                   type="button"
                   onClick={() => setAuthModalMode('register')}

@@ -792,7 +792,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     return {
       success: false,
-      message: 'Correo o contraseña incorrectos. Para ingresar como administrador usa: marceloaliaga102@gmail.com o admin y contraseña Solviplas2025!',
+      message: 'Correo o contraseña incorrectos. Por favor verifica tus credenciales e intenta nuevamente.',
     };
   };
 
