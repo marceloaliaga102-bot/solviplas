@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSolviplasAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'marceloaliaga102@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // 1. Site Configuration
+    match /site_config/{configId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 2. Products Catalog
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 3. Custom Canva Sections
+    match /custom_sections/{sectionId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 4. Community Comments
+    match /comments/{commentId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 5. Media Gallery
+    match /media_items/{mediaId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 6. Tutorial & Recipes
+    match /tutorial_steps/{stepId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /tutorial_ingredients/{ingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 7. Team & Activities
+    match /team_members/{memberId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /activities/{activityId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // 8. Users
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}

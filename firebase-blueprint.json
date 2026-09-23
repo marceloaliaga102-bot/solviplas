@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "siteConfig": {
+      "title": "Site Configuration",
+      "description": "Global configurable properties for the Solviplas bioplastic platform",
+      "type": "object",
+      "properties": {
+        "appName": { "type": "string", "maxLength": 100 },
+        "brandTagline": { "type": "string", "maxLength": 200 },
+        "heroHeadline": { "type": "string", "maxLength": 300 },
+        "heroSubheadline": { "type": "string", "maxLength": 600 },
+        "heroBadge": { "type": "string", "maxLength": 100 },
+        "heroMediaUrl": { "type": "string", "maxLength": 2000 },
+        "heroMediaType": { "type": "string", "enum": ["image", "video"] },
+        "statBioplasticFormula": { "type": "string", "maxLength": 50 },
+        "statDissolutionSpeed": { "type": "string", "maxLength": 50 },
+        "statCarbonFootprint": { "type": "string", "maxLength": 50 },
+        "statMicroplasticsZero": { "type": "string", "maxLength": 50 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["appName"]
+    },
+    "product": {
+      "title": "Product Item",
+      "description": "Bioplastic biodegradable product item in the Solviplas catalog",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "name": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "maxLength": 100 },
+        "badge": { "type": "string", "maxLength": 100 },
+        "shortDescription": { "type": "string", "maxLength": 500 },
+        "description": { "type": "string", "maxLength": 3000 },
+        "mediaType": { "type": "string", "enum": ["image", "video"] },
+        "mediaUrl": { "type": "string", "maxLength": 2000 },
+        "dissolutionTime": { "type": "string", "maxLength": 100 },
+        "thickness": { "type": "string", "maxLength": 100 },
+        "usage": { "type": "string", "maxLength": 500 },
+        "updatedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "name"]
+    },
+    "customSection": {
+      "title": "Custom Section",
+      "description": "Dynamic section added with the Canva-style live editor",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 200 },
+        "subtitle": { "type": "string", "maxLength": 400 },
+        "badge": { "type": "string", "maxLength": 100 },
+        "content": { "type": "string", "maxLength": 5000 },
+        "mediaType": { "type": "string", "enum": ["image", "video"] },
+        "mediaUrl": { "type": "string", "maxLength": 2000 },
+        "order": { "type": "number" },
+        "layout": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "title"]
+    },
+    "comment": {
+      "title": "Community Comment",
+      "description": "User reviews and community questions on the platform",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 100 },
+        "userAvatar": { "type": "string", "maxLength": 2000 },
+        "userRole": { "type": "string", "maxLength": 50 },
+        "content": { "type": "string", "maxLength": 2000 },
+        "category": { "type": "string", "maxLength": 50 },
+        "rating": { "type": "number" },
+        "likes": { "type": "number" },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userName", "content"]
+    },
+    "mediaItem": {
+      "title": "Media Item",
+      "description": "Photo or video in the interactive media gallery",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 200 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "type": { "type": "string", "enum": ["image", "video"] },
+        "url": { "type": "string", "maxLength": 2000 },
+        "thumbnailUrl": { "type": "string", "maxLength": 2000 },
+        "category": { "type": "string", "maxLength": 100 },
+        "featured": { "type": "boolean" },
+        "uploadedAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "title", "url"]
+    }
+  },
+  "firestore": {
+    "/site_config/{configId}": {
+      "schema": "siteConfig",
+      "description": "Global website configurations and editable texts"
+    },
+    "/products/{productId}": {
+      "schema": "product",
+      "description": "All biodegradable bioplastic products in the interactive catalog"
+    },
+    "/custom_sections/{sectionId}": {
+      "schema": "customSection",
+      "description": "Canva-style created dynamic sections"
+    },
+    "/comments/{commentId}": {
+      "schema": "comment",
+      "description": "Community user questions, reviews and feedback"
+    },
+    "/media_items/{mediaId}": {
+      "schema": "mediaItem",
+      "description": "Images and demonstration videos in the gallery"
+    }
+  }
+}

@@ -20,6 +20,8 @@ import {
   INITIAL_MEDIA,
   INITIAL_COMMENTS,
 } from '../data/initialData';
+import { db, handleFirestoreError, OperationType } from '../firebase';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 
 interface Toast {
   id: string;
@@ -329,20 +331,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   }, [activities]);
 
-  // Cloud Database Sync Functions
+  // Cloud Database Sync Functions (Google Cloud Firestore + Local Fallback)
   const pushToCloud = useCallback(async (statePayload: Record<string, any>) => {
     try {
       setIsSyncing(true);
-      const res = await fetch('/api/state', {
+      const safePayload = JSON.parse(JSON.stringify(statePayload));
+      
+      // 1. Persist directly to Google Cloud Firestore
+      try {
+        await setDoc(doc(db, 'site_data', 'main'), safePayload, { merge: true });
+        setLastSyncedAt(new Date());
+      } catch (fErr) {
+        console.warn('Firestore setDoc notice:', fErr);
+      }
+
+      // 2. Also sync to local backend if running
+      await fetch('/api/state', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(statePayload),
-      });
-      if (res.ok) {
-        setLastSyncedAt(new Date());
-      }
-    } catch {
-      // Backend may be offline in static mode; localStorage preserves state
+        body: JSON.stringify(safePayload),
+      }).catch(() => {});
+      
+      setLastSyncedAt(new Date());
+    } catch (err) {
+      console.error('Sync error:', err);
     } finally {
       setIsSyncing(false);
     }
@@ -369,38 +381,66 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         if (showToastNotice) {
           showToast('Datos sincronizados con la base de datos en la nube.', 'info');
         }
-      } else {
-        // First boot: push our initial data to database
-        pushToCloud({
-          siteConfig: INITIAL_SITE_CONFIG,
-          products: INITIAL_PRODUCTS,
-          customSections: INITIAL_CUSTOM_SECTIONS,
-          tutorialSteps: INITIAL_SITE_CONFIG.tutorialSteps,
-          tutorialIngredients: INITIAL_SITE_CONFIG.tutorialIngredients,
-          mediaItems: INITIAL_MEDIA,
-          teamMembers: INITIAL_TEAM,
-          activities: INITIAL_ACTIVITIES,
-          comments: INITIAL_COMMENTS,
-          registeredUsers: [],
-        });
       }
     } catch {
       // Offline fallback
     }
-  }, [pushToCloud, showToast]);
+  }, [showToast]);
 
-  // Initial cloud state load & periodic polling for multi-user real-time sync
+  // Real-time Firestore Multi-user listener
   useEffect(() => {
     isMountedRef.current = true;
-    fetchCloudState();
+    const firestorePath = 'site_data/main';
 
-    const interval = setInterval(() => {
-      fetchCloudState();
-    }, 12000);
+    let unsubscribe = () => {};
+    try {
+      unsubscribe = onSnapshot(
+        doc(db, 'site_data', 'main'),
+        (docSnap) => {
+          if (!isMountedRef.current) return;
+          if (docSnap.exists()) {
+            const cloud = docSnap.data();
+            if (cloud.siteConfig) setSiteConfig(prev => ({ ...prev, ...cloud.siteConfig }));
+            if (Array.isArray(cloud.products) && cloud.products.length > 0) setProducts(cloud.products);
+            if (Array.isArray(cloud.customSections)) setCustomSections(cloud.customSections);
+            if (Array.isArray(cloud.tutorialSteps) && cloud.tutorialSteps.length > 0) setTutorialSteps(cloud.tutorialSteps);
+            if (Array.isArray(cloud.tutorialIngredients) && cloud.tutorialIngredients.length > 0) setTutorialIngredients(cloud.tutorialIngredients);
+            if (Array.isArray(cloud.comments)) setComments(cloud.comments);
+            if (Array.isArray(cloud.mediaItems) && cloud.mediaItems.length > 0) setMediaItems(cloud.mediaItems);
+            if (Array.isArray(cloud.teamMembers) && cloud.teamMembers.length > 0) setTeamMembers(cloud.teamMembers);
+            if (Array.isArray(cloud.activities) && cloud.activities.length > 0) setActivities(cloud.activities);
+            if (Array.isArray(cloud.registeredUsers)) setRegisteredUsers(cloud.registeredUsers);
+            setLastSyncedAt(new Date());
+          } else {
+            // First time initialization: populate Firestore
+            setDoc(doc(db, 'site_data', 'main'), {
+              siteConfig: INITIAL_SITE_CONFIG,
+              products: INITIAL_PRODUCTS,
+              customSections: INITIAL_CUSTOM_SECTIONS,
+              tutorialSteps: INITIAL_SITE_CONFIG.tutorialSteps,
+              tutorialIngredients: INITIAL_SITE_CONFIG.tutorialIngredients,
+              mediaItems: INITIAL_MEDIA,
+              teamMembers: INITIAL_TEAM,
+              activities: INITIAL_ACTIVITIES,
+              comments: INITIAL_COMMENTS,
+              registeredUsers: [],
+            }, { merge: true }).catch(() => {});
+          }
+        },
+        (error) => {
+          handleFirestoreError(error, OperationType.GET, firestorePath);
+        }
+      );
+    } catch (err) {
+      console.warn('Firestore onSnapshot init error:', err);
+    }
+
+    // Also pull initial server backup
+    fetchCloudState();
 
     return () => {
       isMountedRef.current = false;
-      clearInterval(interval);
+      unsubscribe();
     };
   }, [fetchCloudState]);
 

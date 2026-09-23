@@ -100,20 +100,51 @@ export const EditableMedia: React.FC<EditableMediaProps> = ({
     const detectedType = isVideo ? 'video' : 'image';
     setSelectedType(detectedType);
 
-    if (isVideo && file.size > 80 * 1024 * 1024) {
-      showToast('El video supera los 80MB. Usando enlace local rápido.', 'info');
-      const localUrl = URL.createObjectURL(file);
-      setPreviewSrc(localUrl);
+    if (isImage) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1200;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, w, h);
+            const optimized = canvas.toDataURL('image/jpeg', 0.8);
+            setPreviewSrc(optimized);
+            showToast('Imagen optimizada y lista para guardar en la nube.', 'success');
+          } else {
+            setPreviewSrc(reader.result as string);
+          }
+        };
+        img.src = reader.result as string;
+      };
+      reader.readAsDataURL(file);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      setPreviewSrc(result);
-      showToast(`${detectedType === 'video' ? 'Video' : 'Imagen'} cargada. Pulsa "Guardar" para aplicar.`, 'success');
-    };
-    reader.readAsDataURL(file);
+    if (isVideo) {
+      if (file.size > 2 * 1024 * 1024) {
+        showToast('Para sincronizar videos con todos los usuarios en la nube, se recomienda usar la pestaña "Enlace / URL" (YouTube, MP4 o Drive).', 'info');
+      }
+      const localUrl = URL.createObjectURL(file);
+      setPreviewSrc(localUrl);
+      showToast('Video cargado en vista previa.', 'info');
+      return;
+    }
   };
 
   const handleUrlSubmit = (e: React.FormEvent) => {
